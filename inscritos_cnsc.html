@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Estadísticos de Inscripción — CNSC</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#EEF2F7;color:#1e293b;font-size:14px}
+.page{max-width:1180px;margin:0 auto;padding:30px 22px 56px}
+
+/* Header */
+.header{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.header-bar{width:6px;height:46px;background:linear-gradient(180deg,#1B4F8A,#4CA3DD);border-radius:4px;flex-shrink:0}
+.header h1{font-size:21px;font-weight:800;color:#1B4F8A;line-height:1.2}
+.header p{font-size:12px;color:#64748B;margin-top:3px}
+.header-right{margin-left:auto;text-align:right;font-size:11px;color:#94A3B8;line-height:1.6}
+
+/* KPI */
+.kpi-row{display:flex;gap:14px;margin:20px 0 24px;flex-wrap:wrap}
+.kpi{flex:1;min-width:160px;background:#fff;border-radius:12px;padding:16px 18px;
+     box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.kpi-label{font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.6px}
+.kpi-value{font-size:30px;font-weight:800;line-height:1.2;margin:4px 0 2px}
+.kpi-sub{font-size:11px;color:#9CA3AF}
+
+/* Cards */
+.card{background:#fff;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+
+/* Section header */
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sec-num{width:30px;height:30px;border-radius:50%;background:#1B4F8A;color:#fff;
+          display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.sec-title{font-size:16px;font-weight:700}
+
+/* Toolbar */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.toolbar-label{font-size:13px;color:#64748B;font-weight:600}
+.toolbar-right{display:flex;gap:8px}
+.search-input{padding:7px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:13px;
+               width:220px;outline:none;font-family:inherit}
+.search-input:focus{border-color:#2E7FC2;box-shadow:0 0 0 3px rgba(46,127,194,.12)}
+.sort-btn{padding:7px 13px;border-radius:8px;border:1px solid #D1D5DB;font-size:12px;
+           background:#F8FAFC;cursor:pointer;font-weight:700;color:#374151;font-family:inherit}
+.sort-btn:hover{background:#E2EAF4}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#1B4F8A;color:#fff}
+thead th{padding:10px 14px;font-weight:700;text-align:left}
+thead th.r{text-align:right}
+tbody tr:nth-child(even){background:#F8FAFC}
+tbody tr:hover{background:#EEF4FB}
+tbody td{padding:8px 14px;border-bottom:1px solid #E5E7EB}
+tbody td.r{text-align:right}
+td.num{font-weight:700;color:#1B4F8A;text-align:right}
+td.pct{color:#64748B;text-align:right}
+td.idx{color:#9CA3AF;font-weight:600;width:36px}
+.tfoot-row td{background:#1B4F8A!important;color:#fff;font-weight:800;padding:10px 14px}
+.tfoot-row td.r{text-align:right}
+
+/* Two-column layouts */
+.two-col{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.col-chart{flex:0 0 260px}
+.col-right{flex:1;min-width:260px}
+
+/* Progress bars */
+.bar-rows{margin-top:16px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bar-label{font-size:12px;color:#6B7280;width:92px;flex-shrink:0}
+.bar-track{flex:1;height:9px;background:#E5E7EB;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .5s ease}
+.bar-pct{font-size:11px;font-weight:700;color:#374151;width:42px;text-align:right}
+
+/* Discap summary cards */
+.discap-cards{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.dc{flex:1;min-width:200px;border-radius:10px;padding:16px 20px}
+.dc.sin{background:#F0F9FF;border-left:4px solid #0EA5E9}
+.dc.con{background:#F0FDF4;border-left:4px solid #22C55E}
+.dc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.dc.sin .dc-label{color:#0369A1}.dc.con .dc-label{color:#15803D}
+.dc-val{font-size:28px;font-weight:800}
+.dc.sin .dc-val{color:#1B4F8A}.dc.con .dc-val{color:#15803D}
+.dc-sub{font-size:11px;color:#64748B;margin-top:2px}
+
+/* Nota */
+.nota{background:#FFF7ED;border-radius:8px;padding:12px 16px;border-left:3px solid #F59E0B;
+       font-size:11.5px;color:#78350F;margin-top:20px;line-height:1.6}
+
+/* Chart subtitle */
+.chart-sub{font-size:12px;color:#64748B;font-weight:600;margin-bottom:10px}
+
+/* Donut legend */
+.donut-legend{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:#374151}
+.legend-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+
+@media(max-width:680px){
+  .col-chart{flex:0 0 100%}
+  .kpi{min-width:140px}
+  .search-input{width:155px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-bar"></div>
+    <div>
+      <h1>Estadísticos de Inscripción</h1>
+      <p>Proceso de Selección · Comisión Nacional del Servicio Civil (CNSC)</p>
+    </div>
+    <div class="header-right">
+      <div>Inscritos únicos por número de identificación</div>
+      <div id="fecha-hoy"></div>
+    </div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi" style="border-left:5px solid #1B4F8A">
+      <div class="kpi-label">Total inscritos únicos</div>
+      <div class="kpi-value" style="color:#1B4F8A">76.507</div>
+      <div class="kpi-sub">Sin duplicados por identificación</div>
+    </div>
+    <div class="kpi" style="border-left:5px solid #2E7FC2">
+      <div class="kpi-label">Entidades convocantes</div>
+      <div class="kpi-value" style="color:#2E7FC2">25</div>
+      <div class="kpi-sub">Fila convocatoria</div>
+    </div>
+    <div class="kpi" style="border-left:5px solid #4CA3DD">
+      <div class="kpi-label">Niveles de empleo</div>
+      <div class="kpi-value" style="color:#4CA3DD">4</div>
+      <div class="kpi-sub">Profesional · Técnico · Asistencial · Asesor</div>
+    </div>
+    <div class="kpi" style="border-left:5px solid #0EA5E9">
+      <div class="kpi-label">Con discapacidad declarada</div>
+      <div class="kpi-value" style="color:#0EA5E9">434</div>
+      <div class="kpi-sub">0,57% del total inscrito</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN 1 — ENTIDADES
+  ════════════════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="sec-header">
+      <div class="sec-num">1</div>
+      <span class="sec-title">Inscritos por Entidad (Fila Convocatoria)</span>
+    </div>
+
+    <p class="chart-sub">Top 10 entidades por volumen de inscritos</p>
+    <svg id="chart-entidades" width="100%" height="310" style="display:block;overflow:visible"></svg>
+
+    <div class="toolbar" style="margin-top:26px">
+      <span class="toolbar-label">Tabla completa · 25 entidades</span>
+      <div class="toolbar-right">
+        <input class="search-input" id="search" placeholder="Buscar entidad…" oninput="filterTable()"/>
+        <button class="sort-btn" id="sort-btn" onclick="toggleSort()">↓ Mayor primero</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:36px">#</th>
+          <th>Entidad</th>
+          <th class="r">Inscritos</th>
+          <th class="r">% Total</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+        <tfoot><tr class="tfoot-row">
+          <td colspan="2">TOTAL</td>
+          <td class="r">76.507</td>
+          <td class="r">100,00%</td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN 2 — NIVELES
+  ════════════════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="sec-header">
+      <div class="sec-num">2</div>
+      <span class="sec-title">Inscritos por Nivel de Empleo</span>
+    </div>
+    <div class="two-col">
+      <div class="col-chart">
+        <svg id="donut-nivel" width="240" height="240" viewBox="0 0 240 240" style="display:block;margin:0 auto"></svg>
+        <div class="donut-legend" id="legend-nivel"></div>
+      </div>
+      <div class="col-right">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Nivel</th><th class="r">Inscritos</th><th class="r">% Total</th>
+            </tr></thead>
+            <tbody id="tbl-nivel"></tbody>
+            <tfoot><tr class="tfoot-row">
+              <td>TOTAL</td><td class="r">76.507</td><td class="r">100,00%</td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div class="bar-rows" id="bars-nivel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN 3 — DISCAPACIDAD
+  ════════════════════════════════════════════════════════ -->
+  <div class="card">
+    <div class="sec-header">
+      <div class="sec-num">3</div>
+      <span class="sec-title">Inscritos por Discapacidad</span>
+    </div>
+
+    <div class="discap-cards">
+      <div class="dc sin">
+        <div class="dc-label">Sin discapacidad declarada</div>
+        <div class="dc-val">76.073</div>
+        <div class="dc-sub">99,43% del total</div>
+      </div>
+      <div class="dc con">
+        <div class="dc-label">Con discapacidad declarada</div>
+        <div class="dc-val">434</div>
+        <div class="dc-sub">0,57% del total</div>
+      </div>
+    </div>
+
+    <p class="chart-sub">Desglose por tipo · un inscrito puede declarar múltiples tipos</p>
+    <div class="two-col">
+      <div class="col-chart">
+        <svg id="donut-discap" width="240" height="240" viewBox="0 0 240 240" style="display:block;margin:0 auto"></svg>
+        <div class="donut-legend" id="legend-discap"></div>
+      </div>
+      <div class="col-right">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Tipo de discapacidad</th><th class="r">Inscritos</th><th class="r">% s/ discap.</th>
+            </tr></thead>
+            <tbody id="tbl-discap"></tbody>
+          </table>
+        </div>
+        <div class="bar-rows" id="bars-discap"></div>
+      </div>
+    </div>
+
+    <div class="nota">
+      <strong>Nota metodológica:</strong> Los conteos se basan en identificaciones únicas (sin duplicados por documento).
+      En discapacidad, 3 registros con valores no válidos (<em>"SI"</em>, <em>"Norte de Santander"</em>) fueron excluidos del
+      desglose por tipo. El porcentaje sobre discapacidad se calcula sobre los 434 inscritos con discapacidad declarada;
+      un mismo inscrito puede acumular más de un tipo.
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+/* ── DATA ──────────────────────────────────────────────────── */
+const TOTAL = 76507;
+
+const ENTIDADES = [
+  {e:"GOBERNACIÓN DE BOLÍVAR",n:11730,p:"15,33"},
+  {e:"ALCALDÍA DE SOACHA",n:8385,p:"10,96"},
+  {e:"ALCALDÍA DE PEREIRA",n:7500,p:"9,80"},
+  {e:"ALCALDÍA DE SAN JOSÉ DE CÚCUTA",n:6690,p:"8,74"},
+  {e:"ALCALDÍA DE FUNZA",n:6651,p:"8,69"},
+  {e:"GOBERNACIÓN DE NORTE DE SANTANDER",n:6237,p:"8,15"},
+  {e:"GOBERNACIÓN DE ATLÁNTICO",n:5125,p:"6,70"},
+  {e:"ALCALDÍA DE NEIVA",n:4951,p:"6,47"},
+  {e:"GOBERNACIÓN DE CALDAS",n:4621,p:"6,04"},
+  {e:"INSTITUTO DEPARTAMENTAL DE SALUD DE NORTE DE SANTANDER",n:2722,p:"3,56"},
+  {e:"ALCALDÍA MUNICIPAL DE GIRARDOT",n:2382,p:"3,11"},
+  {e:"INSTITUTO DE PROTECCIÓN Y BIENESTAR ANIMAL DE CUNDINAMARCA - IPYBAC",n:1829,p:"2,39"},
+  {e:"INSTITUTO DPTO. DE TRÁNSITO Y TRANSPORTE DEL META",n:1419,p:"1,85"},
+  {e:"AGENCIA PARA LA INFRAESTRUCTURA DEL META - AIM",n:1303,p:"1,70"},
+  {e:"ALCALDÍA DE PITALITO",n:1246,p:"1,63"},
+  {e:"ALCALDÍA DE VILLA DEL ROSARIO",n:976,p:"1,28"},
+  {e:"ASAMBLEA DEPARTAMENTAL DE CALDAS",n:768,p:"1,00"},
+  {e:"SECRETARÍA DE EDUCACIÓN ALCALDÍA DE FUNZA",n:613,p:"0,80"},
+  {e:"PERSONERÍA MUNICIPAL DE MANIZALES",n:555,p:"0,73"},
+  {e:"SECRETARÍA DE EDUCACIÓN MUNICIPIO DE PITALITO",n:320,p:"0,42"},
+  {e:"CONCEJO DE MANIZALES",n:247,p:"0,32"},
+  {e:"CONCEJO MUNICIPAL DE MOSQUERA CUNDINAMARCA",n:108,p:"0,14"},
+  {e:"CONCEJO DE PITALITO",n:61,p:"0,08"},
+  {e:"IDERF - FUSAGASUGÁ",n:41,p:"0,05"},
+  {e:"IMRD - VILLA DEL ROSARIO",n:27,p:"0,04"},
+];
+
+const NIVELES = [
+  {nivel:"Profesional",n:42755,p:"55,88",c:"#1B4F8A"},
+  {nivel:"Asistencial", n:22619,p:"29,56",c:"#2E7FC2"},
+  {nivel:"Técnico",     n:11038,p:"14,43",c:"#4CA3DD"},
+  {nivel:"Asesor",      n:95,   p:"0,12", c:"#A0C8E8"},
+];
+
+const TIPOS = [
+  {t:"Física",      n:198,p:"45,62",c:"#1B4F8A"},
+  {t:"Auditiva",    n:123,p:"28,34",c:"#2563AB"},
+  {t:"Visual",      n:90, p:"20,74",c:"#3B82C4"},
+  {t:"Psicosocial", n:56, p:"12,90",c:"#5B9FD4"},
+  {t:"Múltiple",    n:36, p:"8,29", c:"#85BDE4"},
+  {t:"Intelectual", n:13, p:"3,00", c:"#AACFE8"},
+  {t:"Sordoceguera",n:1,  p:"0,23", c:"#C9E2F2"},
+];
+
+/* ── HELPERS ───────────────────────────────────────────────── */
+const fmt = n => n.toLocaleString("es-CO");
+
+document.getElementById("fecha-hoy").textContent =
+  new Date().toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"});
+
+/* ── HORIZONTAL BAR CHART (SVG puro) ───────────────────────── */
+function drawBarChart() {
+  const svg    = document.getElementById("chart-entidades");
+  const W      = svg.parentElement.clientWidth || 900;
+  const data   = ENTIDADES.slice(0,10);
+  const ROW    = 27;
+  const LABEL  = 210;
+  const PAD    = {top:6, right:60, bottom:20, left:LABEL};
+  const H      = data.length * ROW + PAD.top + PAD.bottom;
+  const maxVal = data[0].n;
+  const barW   = W - PAD.left - PAD.right;
+  const COLORS = ["#1B4F8A","#1B4F8A","#2563AB","#2E7FC2","#2E7FC2",
+                  "#3580C0","#3B8FC4","#4CA3DD","#5AAEE0","#78BDE8"];
+
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("height", H);
+
+  let html = "";
+  data.forEach((d,i) => {
+    const y    = PAD.top + i * ROW;
+    const bLen = (d.n / maxVal) * barW;
+    const cy   = y + ROW * 0.5;
+    const label = d.e.length > 32 ? d.e.slice(0,30)+"…" : d.e;
+
+    html += `
+      <text x="${LABEL-8}" y="${cy+4.5}" text-anchor="end"
+            font-size="11" fill="#374151" font-family="Segoe UI,Arial,sans-serif">${label}</text>
+      <rect x="${LABEL}" y="${y+4}" width="${bLen}" height="${ROW-8}"
+            rx="3" fill="${COLORS[i]}" opacity="0.92"/>
+      <text x="${LABEL+bLen+6}" y="${cy+4.5}"
+            font-size="11" fill="#374151" font-family="Segoe UI,Arial,sans-serif"
+            font-weight="700">${fmt(d.n)}</text>`;
+  });
+
+  /* grid lines */
+  const ticks = 5;
+  for(let i=0;i<=ticks;i++){
+    const x = LABEL + (barW/ticks)*i;
+    const v = Math.round((maxVal/ticks)*i);
+    html = `<line x1="${x}" y1="${PAD.top-2}" x2="${x}" y2="${H-PAD.bottom}"
+                  stroke="#E5E7EB" stroke-width="1"/>
+            <text x="${x}" y="${H-4}" text-anchor="middle"
+                  font-size="10" fill="#9CA3AF" font-family="Segoe UI,Arial,sans-serif">${i===0?'':fmt(v)}</text>` + html;
+  }
+
+  svg.innerHTML = html;
+}
+
+/* ── DONUT ─────────────────────────────────────────────────── */
+function drawDonut(svgId, legendId, data, keyN, keyLabel, keyColor) {
+  const svg    = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  const cx=120, cy=120, ro=100, ri=55;
+  const total  = data.reduce((s,d)=>s+d[keyN],0);
+  let angle    = -Math.PI/2;
+  let paths    = "";
+  let tips     = [];
+
+  data.forEach((d,i) => {
+    const frac  = d[keyN] / total;
+    const sweep = frac * 2 * Math.PI;
+    const a1    = angle, a2 = angle + sweep;
+    const lx1   = cx + ro*Math.cos(a1), ly1 = cy + ro*Math.sin(a1);
+    const lx2   = cx + ro*Math.cos(a2), ly2 = cy + ro*Math.sin(a2);
+    const sx1   = cx + ri*Math.cos(a2), sy1 = cy + ri*Math.sin(a2);
+    const sx2   = cx + ri*Math.cos(a1), sy2 = cy + ri*Math.sin(a1);
+    const large = sweep > Math.PI ? 1 : 0;
+    const col   = d[keyColor];
+    const id    = `seg-${svgId}-${i}`;
+
+    paths += `<path id="${id}" d="M${lx1},${ly1} A${ro},${ro} 0 ${large},1 ${lx2},${ly2}
+                L${sx1},${sy1} A${ri},${ri} 0 ${large},0 ${sx2},${sy2} Z"
+              fill="${col}" stroke="#fff" stroke-width="2"
+              style="cursor:pointer;transition:opacity .2s"
+              onmouseenter="this.style.opacity='.75'"
+              onmouseleave="this.style.opacity='1'"
+              role="img" aria-label="${d[keyLabel]}: ${fmt(d[keyN])}"/>`;
+
+    /* tooltip text in center on hover */
+    const mid = a1 + sweep/2;
+    tips.push({id, label:d[keyLabel], val:fmt(d[keyN]), pct:d.p||((frac*100).toFixed(2).replace(".",","))});
+    angle += sweep;
+  });
+
+  svg.innerHTML = paths +
+    `<text id="${svgId}-t1" x="120" y="114" text-anchor="middle"
+           font-size="13" font-weight="800" fill="#1B4F8A"
+           font-family="Segoe UI,Arial,sans-serif"></text>
+     <text id="${svgId}-t2" x="120" y="131" text-anchor="middle"
+           font-size="10" fill="#6B7280"
+           font-family="Segoe UI,Arial,sans-serif"></text>`;
+
+  /* hover labels */
+  tips.forEach(tp => {
+    const el = svg.getElementById(tp.id);
+    if(!el) return;
+    el.addEventListener("mouseenter",()=>{
+      svg.getElementById(svgId+"-t1").textContent = fmt(parseInt(tp.val.replace(/\./g,"")));
+      svg.getElementById(svgId+"-t2").textContent = tp.pct+"%";
+    });
+    el.addEventListener("mouseleave",()=>{
+      svg.getElementById(svgId+"-t1").textContent = "";
+      svg.getElementById(svgId+"-t2").textContent = "";
+    });
+  });
+
+  /* legend */
+  legend.innerHTML = data.map(d=>
+    `<div class="legend-item">
+       <div class="legend-dot" style="background:${d[keyColor]}"></div>
+       <span><strong>${d[keyLabel]}</strong> — ${fmt(d[keyN])}</span>
+     </div>`
+  ).join("");
+}
+
+/* ── TABLE: ENTIDADES ───────────────────────────────────────── */
+let sortDir = "desc";
+let lastData = [...ENTIDADES];
+
+function renderTable(data) {
+  const body = document.getElementById("tbl-body");
+  body.innerHTML = data.map((d,i)=>
+    `<tr>
+       <td class="idx">${i+1}</td>
+       <td>${d.e}</td>
+       <td class="num">${fmt(d.n)}</td>
+       <td class="pct">${d.p}%</td>
+     </tr>`
+  ).join("");
+}
+
+function filterTable() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const filtered = ENTIDADES.filter(d=>d.e.toLowerCase().includes(q));
+  lastData = sortDir==="desc"
+    ? filtered.sort((a,b)=>b.n-a.n)
+    : filtered.sort((a,b)=>a.n-b.n);
+  renderTable(lastData);
+}
+
+function toggleSort() {
+  sortDir = sortDir==="desc" ? "asc" : "desc";
+  document.getElementById("sort-btn").textContent =
+    sortDir==="desc" ? "↓ Mayor primero" : "↑ Menor primero";
+  filterTable();
+}
+
+/* ── TABLE: NIVELES ─────────────────────────────────────────── */
+function renderNiveles() {
+  document.getElementById("tbl-nivel").innerHTML = NIVELES.map(d=>
+    `<tr>
+       <td><span style="display:inline-flex;align-items:center;gap:7px">
+         <span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${d.c};flex-shrink:0"></span>
+         <strong>${d.nivel}</strong></span></td>
+       <td class="num">${fmt(d.n)}</td>
+       <td class="pct">${d.p}%</td>
+     </tr>`
+  ).join("");
+
+  document.getElementById("bars-nivel").innerHTML = NIVELES.map(d=>
+    `<div class="bar-row">
+       <span class="bar-label">${d.nivel}</span>
+       <div class="bar-track"><div class="bar-fill" style="width:${parseFloat(d.p.replace(",","."))}%;background:${d.c}"></div></div>
+       <span class="bar-pct">${d.p}%</span>
+     </div>`
+  ).join("");
+}
+
+/* ── TABLE: DISCAPACIDAD ────────────────────────────────────── */
+function renderDiscap() {
+  document.getElementById("tbl-discap").innerHTML = TIPOS.map(d=>
+    `<tr>
+       <td><span style="display:inline-flex;align-items:center;gap:7px">
+         <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${d.c};flex-shrink:0"></span>
+         <strong>${d.t}</strong></span></td>
+       <td class="num">${d.n}</td>
+       <td class="pct">${d.p}%</td>
+     </tr>`
+  ).join("");
+
+  document.getElementById("bars-discap").innerHTML = TIPOS.map(d=>
+    `<div class="bar-row">
+       <span class="bar-label">${d.t}</span>
+       <div class="bar-track"><div class="bar-fill" style="width:${parseFloat(d.p.replace(",","."))}%;background:${d.c}"></div></div>
+       <span class="bar-pct">${d.p}%</span>
+     </div>`
+  ).join("");
+}
+
+/* ── INIT ───────────────────────────────────────────────────── */
+window.addEventListener("load", () => {
+  renderTable(ENTIDADES);
+  drawBarChart();
+  renderNiveles();
+  drawDonut("donut-nivel","legend-nivel", NIVELES, "n","nivel","c");
+  renderDiscap();
+  drawDonut("donut-discap","legend-discap", TIPOS, "n","t","c");
+});
+
+window.addEventListener("resize", drawBarChart);
+</script>
+</body>
+</html>
